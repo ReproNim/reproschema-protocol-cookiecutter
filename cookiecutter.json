@@ -1,0 +1,11 @@
+{
+	"protocol_name": "my-reproschema-protocol",
+	"__protocol_slug":  "{{ cookiecutter.protocol_name|lower()|replace(' ', '_')|replace('-', '_') }}",
+	"github_org": "my-org",
+    "__source_path": "src/{{cookiecutter.__protocol_slug}}/schema/{{cookiecutter.__project_slug}}.yaml",
+    "protocol_description": "This is the protocol description.",
+    "full_name": "My Name",
+    "email": "my-name@my-org.org",
+    "__author": "{{cookiecutter.full_name}} <{{cookiecutter.email}}>",
+    "license": ["MIT", "BSD-3", "GNU GPL v3.0", "Apache Software License 2.0"]
+}
