@@ -1,0 +1,44 @@
+name: Update Schema Versions
+
+on:
+  schedule:
+    # Runs at 00:00 on the first day of January and July
+    # - cron: '0 0 1 1,7 *'
+    - cron: '*/5 * * * *'
+
+jobs:
+  update-schema-version:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Check out repository
+      uses: actions/checkout@v3
+      with:
+        fetch-depth: 0  # Fetches the entire history for comprehensive CI checks
+
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.9'
+
+    - name: Fetch the latest release from ReproNim/reproschema
+      id: fetch-latest-release
+      run: |
+        LATEST_RELEASE=$(curl -s https://api.github.com/repos/ReproNim/reproschema/releases/latest | jq -r '.tag_name')
+        echo "LATEST_RELEASE=$LATEST_RELEASE" >> $GITHUB_ENV
+
+    - name: Update schema versions in files
+      run: python update_schema_version.py
+
+    - name: Commit and push changes
+      run: |
+        git config --local user.email "action@github.com"
+        git config --local user.name "GitHub Action"
+        git add -u
+        if git diff --staged --quiet; then
+          echo "No changes to commit"
+        else
+          git commit -m "Update schema versions to $LATEST_RELEASE"
+          git push
+        fi
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
