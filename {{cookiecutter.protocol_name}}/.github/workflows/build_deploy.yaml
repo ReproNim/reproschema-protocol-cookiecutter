@@ -49,8 +49,9 @@ jobs:
         grep -r "@context" {{cookiecutter.__protocol_slug}} | cut -d: -f1 | xargs -I {} jsonlint -q {}
 
     - name: Validate protocol with pyshacl
-      run: poetry run reproschema -l DEBUG validate activities
-      run: poetry run reproschema -l DEBUG validate {{cookiecutter.__protocol_slug}}/{{cookiecutter.__protocol_slug}}_schema
+      run: 
+        poetry run reproschema -l DEBUG validate activities
+        poetry run reproschema -l DEBUG validate {{cookiecutter.__protocol_slug}}/{{cookiecutter.__protocol_slug}}_schema
 
     - name: Build and prepare UI
       run: |
