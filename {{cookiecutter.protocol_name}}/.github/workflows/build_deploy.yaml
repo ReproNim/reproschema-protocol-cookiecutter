@@ -1,0 +1,72 @@
+name: Continuous Integration and Deployment of {{cookiecutter.protocol_name}}
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Check out repository
+      uses: actions/checkout@v3
+      with:
+        fetch-depth: 0  # Fetches the entire history for comprehensive CI checks
+
+    - name: Set up Node.js
+      uses: actions/setup-node@v2
+      with:
+        node-version: '14.x' # Updated to a more recent LTS version
+
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.9' # Updated to Python 3.9
+
+    - name: Install Poetry for Python dependency management
+      uses: snok/install-poetry@v1.3
+      with:
+        version: 1.1.12 # Specify the version of Poetry to use
+
+    - name: Install Python dependencies with Poetry
+      run: poetry install
+
+    - name: Install system dependencies
+      run: sudo apt-get install jq
+
+    - name: Get latest commit hash from reproschema-ui
+      run: |
+        LATEST_HASH=$(curl -s https://api.github.com/repos/ReproNim/reproschema-ui/commits/main | jq -r '.sha')
+        echo "LATEST_COMMIT_HASH=$LATEST_HASH" >> $GITHUB_ENV
+
+    - name: Install Node dependencies and validate JSON
+      run: |
+        npm install -g jsonlint
+        grep -r "@context" activities | cut -d: -f1 | xargs -I {} jsonlint -q {}
+        grep -r "@context" {{cookiecutter.__protocol_slug}} | cut -d: -f1 | xargs -I {} jsonlint -q {}
+
+    - name: Validate protocol with pyshacl
+      run: poetry run reproschema -l DEBUG validate activities
+      run: poetry run reproschema -l DEBUG validate {{cookiecutter.__protocol_slug}}/{{cookiecutter.__protocol_slug}}_schema
+
+    - name: Build and prepare UI
+      run: |
+        curl -O -sSL https://github.com/ReproNim/reproschema-ui/archive/${LATEST_COMMIT_HASH}.zip
+        unzip ${LATEST_COMMIT_HASH}.zip
+        mv reproschema-ui-* ui
+        cp -r ../ui-changes/. ui/
+        cd ui
+        npm install
+        npm run build
+        touch dist/.nojekyll
+
+    - name: Deploy to GitHub Pages 🚀
+      if: github.ref == 'refs/heads/main'
+      uses: JamesIves/github-pages-deploy-action@4
+      with:
+        token: ${{ secrets.GITHUB_TOKEN }}
+        branch: gh-pages
+        folder: ui/dist
