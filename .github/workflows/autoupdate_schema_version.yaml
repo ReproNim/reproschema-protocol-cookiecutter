@@ -1,8 +1,9 @@
 name: Update Schema Versions
 
 on:
-  push:
-    branches: [ test-ga ]
+  schedule:
+    # Runs at 00:00 on the first day of January and July
+    - cron: '0 0 1 1,7 *'
 
 jobs:
   update-schema-version:
