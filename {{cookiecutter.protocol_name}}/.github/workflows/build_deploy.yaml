@@ -14,7 +14,10 @@ jobs:
     - name: Set Environment Variable
       run: |
         echo "PROTOCOL_SLUG={{cookiecutter.__protocol_slug}}" >> $GITHUB_ENV
-        echo "PROTOCOL_SLUG is set to $PROTOCOL_SLUG"
+    
+    - name: Echo Environment Variable
+      run: |
+        echo "PROTOCOL_SLUG is set to $PROTOCOL_SLUG"    
     
     - name: Check out repository
       uses: actions/checkout@v3
