@@ -1,5 +1,5 @@
 # reproschema-protocol-cookiecutter
-A cookiecutter for ReproSchema protocols.
+A [Cookiecutter](https://cookiecutter.readthedocs.io/en/stable/) for [ReproSchema](https://github.com/ReproNim/reproschema) protocols.
 
 ## Prerequisites
 
@@ -57,17 +57,17 @@ Suggestions:
 Then, go to your protocol folder
 ```bash
 cd my-reproschema-protocol  # using the folder example above
+make setup
 ```
 
 ### Step 2: Create a GitHub project
 
-1. Go to https://github.com/new and follow the instructions, being sure NOT to add a `README` or `.gitignore` file (this cookiecutter template will take care of those files for you)
+1. Go to https://github.com/new and follow the instructions, being sure NOT to add a `README` or `.gitignore` file (this cookiecutter template will take care of those files for you). Be sure your GitHub project uses the same `protocol_name`
 
 2. Add the remote to your local git repository
 
    ```bash
-   git remote remove origin
-   git remote add origin https://github.com/{github-user-or-organization}/{protocol-name}.git
+   git remote add origin https://github.com/{github-user-or-organization}/{protocol_name}.git
    git branch -M main
    git push -u origin main
    ```
@@ -80,6 +80,10 @@ cd my-reproschema-protocol  # using the folder example above
         ```bash 
         git checkout -b gh-pages 
         ``` 
+    - Push the gh-pages branch to remote:
+        ```bash
+        git push --set-upstream origin gh-pages
+        ```
     This branch allows you to deploy your ReproSchema UI publicly. 
     
 ## Keeping your project up to date
@@ -105,3 +109,7 @@ up-to-date by the following:
 ```output
 FAILURE: Project's cruft is out of date! Run `cruft update` to clean this mess up.
 ```
+## Credits
+
+This cookiecutter was made with pieces from
+[Cookiecutter](https://cookiecutter.readthedocs.io/en/stable/) and [linkml-project-cookiecutter](https://github.com/linkml/linkml-project-cookiecutter).

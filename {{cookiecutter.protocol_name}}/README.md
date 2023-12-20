@@ -14,15 +14,6 @@
 * [activities/](activities/) - Contains activity files (edit these files)
 * [ui-changes/src/config.js](ui-changes/src/config.js) - Source file for UI setup (edit this file)
 
-## Developer Documentation
-
-<details>
-Use the `make` command to generate protocol artefacts:
-
-* `make all`: make everything
-* `make deploy`: deploys site
-</details>
-
 ## Credits
 
 This protocol was made with
