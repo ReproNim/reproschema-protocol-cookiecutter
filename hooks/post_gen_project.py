@@ -4,7 +4,7 @@ import shutil
 
 def main():
     base_path = os.getcwd()  # Base path of the generated project
-    activities_path = os.path.join(base_path, '{{cookiecutter.protocol_name}}', 'activities')
+    activities_path = os.path.join(base_path, 'activities')
 
     try:
         with open('selected_activities.json') as f:
