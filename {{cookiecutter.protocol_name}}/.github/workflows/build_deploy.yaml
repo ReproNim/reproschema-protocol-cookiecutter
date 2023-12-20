@@ -39,7 +39,7 @@ jobs:
 
     - name: Get latest commit hash from reproschema-ui
       run: |
-        LATEST_HASH=$(curl -s https://api.github.com/repos/ReproNim/reproschema-ui/commits/main | jq -r '.sha')
+        LATEST_HASH=$(curl -s https://api.github.com/repos/ReproNim/reproschema-ui/commits/master | jq -r '.sha')
         echo "LATEST_COMMIT_HASH=$LATEST_HASH" >> $GITHUB_ENV
 
     - name: Install Node dependencies and validate JSON
