@@ -2,7 +2,6 @@
     "protocol_name": "my-reproschema-protocol",
     "__protocol_slug":  "{{ cookiecutter.protocol_name|lower()|replace(' ', '_')|replace('-', '_') }}",
     "github_org": "my-org",
-    "__source_path": "src/{{cookiecutter.__protocol_slug}}/schema/{{cookiecutter.__project_slug}}.yaml",
     "protocol_description": "This is the protocol description.",
     "number_of_activities": "How many activities do you want to create? (1-5)",
     "full_name": "My Name",
