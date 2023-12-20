@@ -9,6 +9,7 @@ def select_activities(n):
 
 def main():
     # Read the number of activities from a command line argument instead of cookiecutter.json
+    print("sys argv:", sys.argv)
     try:
         num_activities = int(sys.argv[3])
         if num_activities <= 0 or num_activities > 5:
