@@ -13,7 +13,7 @@ jobs:
     steps:
     - name: Set Environment Variable
       run: |
-        echo "PROTOCOL_SLUG=$(echo '{{cookiecutter.__protocol_slug}}')" >> $GITHUB_ENV
+        echo "PROTOCOL_SLUG={{cookiecutter.__protocol_slug}}" >> $GITHUB_ENV
         echo "PROTOCOL_SLUG is set to $PROTOCOL_SLUG"
     
     - name: Check out repository
