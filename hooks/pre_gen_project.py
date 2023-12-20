@@ -1,15 +1,15 @@
+# pre_gen_project.py-tpl
 import random
 import sys
 import json
-import os
 
 def select_activities(n):
     all_activities = ['Activity1', 'Activity2', 'Activity3', 'selectActivity', 'voiceActivity']
     return random.sample(all_activities, n)
 
 def main():
-    # Read the number of activities from an environment variable
-    num_activities_str = os.environ.get('NUMBER_OF_ACTIVITIES', '5')
+    # Read the number of activities from the Cookiecutter context
+    num_activities_str = '{{ cookiecutter.number_of_activities }}'
 
     try:
         num_activities = int(num_activities_str)
