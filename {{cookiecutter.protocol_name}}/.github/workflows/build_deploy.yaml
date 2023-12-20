@@ -54,7 +54,8 @@ jobs:
       run: |
         reproschema -l DEBUG validate activities
         echo "Running command: reproschema -l DEBUG validate ${PROTOCOL_SLUG}/${PROTOCOL_SLUG}_schema"
-        reproschema -l DEBUG validate "${PROTOCOL_SLUG}/${PROTOCOL_SLUG}_schema"
+        echo "Running command2: reproschema -l DEBUG validate PROTOCOL_SLUG/PROTOCOL_SLUG_schema"
+        reproschema -l DEBUG validate $${PROTOCOL_SLUG}/$${PROTOCOL_SLUG}_schema"
 
     - name: Build and prepare UI
       run: |
