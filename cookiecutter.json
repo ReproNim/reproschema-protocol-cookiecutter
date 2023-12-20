@@ -4,6 +4,7 @@
     "github_org": "my-org",
     "__source_path": "src/{{cookiecutter.__protocol_slug}}/schema/{{cookiecutter.__project_slug}}.yaml",
     "protocol_description": "This is the protocol description.",
+    "number_of_activities": "How many activities do you want to create? (1-5)",
     "full_name": "My Name",
     "email": "my-name@my-org.org",
     "__author": "{{cookiecutter.full_name}} <{{cookiecutter.email}}>",
