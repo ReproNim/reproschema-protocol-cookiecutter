@@ -8,13 +8,14 @@ def select_activities(n):
     return random.sample(all_activities, n)
 
 def main():
-    # Read the number of activities from a command line argument instead of cookiecutter.json
-    print("sys argv:", sys.argv)
+    # Read the number of activities from an environment variable
+    num_activities_str = os.environ.get('NUMBER_OF_ACTIVITIES', '5')
+
     try:
-        num_activities = int(sys.argv[3])
+        num_activities = int(num_activities_str)
         if num_activities <= 0 or num_activities > 5:
             raise ValueError
-    except (ValueError, IndexError):
+    except ValueError:
         print("Error: Please enter a number between 1 and 5.")
         sys.exit(1)
 
