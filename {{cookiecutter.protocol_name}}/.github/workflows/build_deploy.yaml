@@ -60,6 +60,8 @@ jobs:
         mv reproschema-ui-* ui
         cp -r ../ui-changes/. ui/
         cd ui
+        # Modify the title in index.html
+        sed -i 's/<title>.*<\/title>/<title>{{cookiecutter.protocol_name}}<\/title>/' public/index.html
         npm install
         npm run build
         touch dist/.nojekyll
