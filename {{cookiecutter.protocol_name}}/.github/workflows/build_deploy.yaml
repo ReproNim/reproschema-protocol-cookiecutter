@@ -40,7 +40,7 @@ jobs:
     - name: Read Checksum from config.env
       run: |
         echo "Reading checksum..."
-        CHECKSUM=$(cat config.env | grep REPROSCHEMA_UI_COMMIT_HASH | cut -d '=' -f2)
+        CHECKSUM=$(cat config.env | grep REPROSCHEMA_UI_CHECKSUM | cut -d '=' -f2)
         echo "LATEST_COMMIT_HASH=${CHECKSUM}" >> $GITHUB_ENV
 
     - name: Install Node dependencies and validate JSON
