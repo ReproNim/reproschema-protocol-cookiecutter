@@ -20,14 +20,14 @@ jobs:
         echo "PROTOCOL_SLUG is set to $PROTOCOL_SLUG"    
     
     - name: Check out repository
-      uses: actions/checkout@v3
+      uses: actions/checkout@v2
       with:
         fetch-depth: 0  # Fetches the entire history for comprehensive CI checks
 
     - name: Set up Node.js
-      uses: actions/setup-node@v2
+      uses: actions/setup-node@v1
       with:
-        node-version: '14.x' # Updated to a more recent LTS version
+        node-version: '12.x' # Updated to a more recent LTS version
 
     - name: Set up Python
       uses: actions/setup-python@v4
@@ -64,8 +64,8 @@ jobs:
         curl -O -sSL https://github.com/ReproNim/reproschema-ui/archive/${LATEST_COMMIT_HASH}.zip
         unzip ${LATEST_COMMIT_HASH}.zip
         mv reproschema-ui-* ui
-        cp -r ui-changes/. ui/
         cd ui
+        cp -r ../ui-changes/. .
         # Modify the title in index.html
         sed -i 's/<title>.*<\/title>/<title>{{cookiecutter.protocol_name}}<\/title>/' public/index.html
         npm install
