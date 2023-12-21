@@ -37,11 +37,10 @@ jobs:
     - name: Install system dependencies
       run: sudo apt-get install jq
 
-    - name: Read Checksum from config.env
+    - name: Read reproschema_ui_commit_hash from .cruft.json
       run: |
-        echo "Reading checksum..."
-        CHECKSUM=$(cat config.env | grep REPROSCHEMA_UI_CHECKSUM | cut -d '=' -f2)
-        echo "LATEST_COMMIT_HASH=${CHECKSUM}" >> $GITHUB_ENV
+        LATEST_COMMIT_HASH=$(jq -r '.reproschema_ui_commit_hash' .cruft.json)
+        echo "LATEST_COMMIT_HASH=${LATEST_COMMIT_HASH}" >> $GITHUB_ENV
 
     - name: Install Node dependencies and validate JSON
       run: |
@@ -64,7 +63,7 @@ jobs:
         curl -O -sSL https://github.com/ReproNim/reproschema-ui/archive/${LATEST_COMMIT_HASH}.zip
         unzip ${LATEST_COMMIT_HASH}.zip
         mv reproschema-ui-* ui
-        cp -r ../ui-changes/. ui/
+        cp -r ui-changes/. ui/
         cd ui
         # Modify the title in index.html
         sed -i 's/<title>.*<\/title>/<title>{{cookiecutter.protocol_name}}<\/title>/' public/index.html
