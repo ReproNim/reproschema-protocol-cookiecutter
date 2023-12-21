@@ -36,10 +36,8 @@ def update_json_schema(activities, base_path):
 
 def fetch_latest_checksum(base_path):
     try:
-        latest_hash = subprocess.check_output(
-            ["curl", "-s", "https://api.github.com/repos/ReproNim/reproschema-ui/commits/master", "|", "jq", "-r", "'.sha'"],
-            universal_newlines=True
-        ).strip()
+        command = "curl -s https://api.github.com/repos/ReproNim/reproschema-ui/commits/master | jq -r '.sha'"
+        latest_hash = subprocess.check_output(command, shell=True, universal_newlines=True).strip()
 
         config_path = os.path.join(base_path, 'config.env')
         with open(config_path, 'w') as file:
@@ -51,29 +49,38 @@ def fetch_latest_checksum(base_path):
 
 def main():
     base_path = os.getcwd()
-    activities_path = os.path.join(base_path, 'activities')
+    init_flag_path = os.path.join(base_path, '.initialized')
 
-    try:
-        with open('selected_activities.json') as f:
-            selected_activities = json.load(f)
-    except (FileNotFoundError, json.JSONDecodeError):
-        print("Error reading selected activities.")
-        return
+    # Check if the project has been initialized before
+    if not os.path.exists(init_flag_path):
+        # Project initialization logic
+        activities_path = os.path.join(base_path, 'activities')
 
-    for activity in selected_activities:
-        activity_dir = os.path.join(activities_path, activity)
-        if not os.path.exists(activity_dir):
-            os.makedirs(activity_dir)
+        try:
+            with open('selected_activities.json') as f:
+                selected_activities = json.load(f)
+        except (FileNotFoundError, json.JSONDecodeError):
+            print("Error reading selected activities.")
+            return
 
-    all_activities = ['Activity1', 'Activity2', 'Activity3', 'selectActivity', 'voiceActivity']
-    for activity in all_activities:
-        if activity not in selected_activities:
+        for activity in selected_activities:
             activity_dir = os.path.join(activities_path, activity)
-            if os.path.exists(activity_dir):
-                shutil.rmtree(activity_dir)
+            if not os.path.exists(activity_dir):
+                os.makedirs(activity_dir)
 
-    activities = [activity for activity in selected_activities if os.path.exists(os.path.join(activities_path, activity))]
-    update_json_schema(activities, base_path)
+        all_activities = ['Activity1', 'Activity2', 'Activity3', 'selectActivity', 'voiceActivity']
+        for activity in all_activities:
+            if activity not in selected_activities:
+                activity_dir = os.path.join(activities_path, activity)
+                if os.path.exists(activity_dir):
+                    shutil.rmtree(activity_dir)
+
+        activities = [activity for activity in selected_activities if os.path.exists(os.path.join(activities_path, activity))]
+        update_json_schema(activities, base_path)
+
+        # Mark initialization as complete
+        with open(init_flag_path, 'w') as f:
+            f.write('initialized')
 
     # Fetch and save the latest checksum
     fetch_latest_checksum(base_path)
