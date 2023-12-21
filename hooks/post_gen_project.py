@@ -1,7 +1,7 @@
 import json
 import os
 import shutil
-import subprocess
+import requests
 
 def get_pref_label(activity_path):
     try:
@@ -36,8 +36,10 @@ def update_json_schema(activities, base_path):
 
 def fetch_latest_checksum(base_path):
     try:
-        command = "curl -s https://api.github.com/repos/ReproNim/reproschema-ui/commits/master | jq -r '.sha'"
-        latest_hash = subprocess.check_output(command, shell=True, universal_newlines=True).strip()
+        # Using Python requests to fetch and parse JSON
+        response = requests.get("https://api.github.com/repos/ReproNim/reproschema-ui/commits/master")
+        response.raise_for_status()  # Raises an HTTPError if the HTTP request returned an unsuccessful status code
+        latest_hash = response.json()['sha']
 
         config_path = os.path.join(base_path, 'config.env')
         with open(config_path, 'w') as file:
