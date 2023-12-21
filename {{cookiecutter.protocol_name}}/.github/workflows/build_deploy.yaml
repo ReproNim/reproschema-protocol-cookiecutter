@@ -37,10 +37,11 @@ jobs:
     - name: Install system dependencies
       run: sudo apt-get install jq
 
-    - name: Read reproschema_ui_commit_hash from .cruft.json
+    - name: Read Checksum from config.env
       run: |
-        LATEST_COMMIT_HASH=$(jq -r '.reproschema_ui_commit_hash' .cruft.json)
-        echo "LATEST_COMMIT_HASH=${LATEST_COMMIT_HASH}" >> $GITHUB_ENV
+        echo "Reading checksum..."
+        CHECKSUM=$(cat config.env | grep REPROSCHEMA_UI_COMMIT_HASH | cut -d '=' -f2)
+        echo "LATEST_COMMIT_HASH=${CHECKSUM}" >> $GITHUB_ENV
 
     - name: Install Node dependencies and validate JSON
       run: |

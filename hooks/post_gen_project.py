@@ -41,20 +41,12 @@ def fetch_latest_checksum(base_path):
         response.raise_for_status()  # Raises an HTTPError if the HTTP request returned an unsuccessful status code
         latest_hash = response.json()['sha']
 
-        # Path to the .cruft.json file
-        cruft_file_path = os.path.join(base_path, '.cruft.json')
+        config_path = os.path.join(base_path, 'config.env')
+        with open(config_path, 'w') as file:
+            file.write(f"REPROSCHEMA_UI_CHECKSUM={latest_hash}\n")
 
-        # Read existing data from .cruft.json
-        with open(cruft_file_path, 'r') as file:
-            cruft_data = json.load(file)
+        print("Latest checksum fetched and saved in config.env.")
 
-        # Add the reproschema_ui_commit_hash
-        cruft_data['reproschema_ui_commit_hash'] = latest_hash
-
-        # Write the updated data back to .cruft.json
-        with open(cruft_file_path, 'w') as file:
-            json.dump(cruft_data, file, indent=4)
-            
     except Exception as e:
         print(f"Error fetching checksum: {e}")
 
