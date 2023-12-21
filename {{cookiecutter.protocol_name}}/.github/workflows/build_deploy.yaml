@@ -20,14 +20,14 @@ jobs:
         echo "PROTOCOL_SLUG is set to $PROTOCOL_SLUG"    
     
     - name: Check out repository
-      uses: actions/checkout@v2
+      uses: actions/checkout@v3
       with:
         fetch-depth: 0  # Fetches the entire history for comprehensive CI checks
 
     - name: Set up Node.js
-      uses: actions/setup-node@v1
+      uses: actions/setup-node@v2
       with:
-        node-version: '12.x' # Updated to a more recent LTS version
+        node-version: '14.x' # Updated to a more recent LTS version
 
     - name: Set up Python
       uses: actions/setup-python@v4
