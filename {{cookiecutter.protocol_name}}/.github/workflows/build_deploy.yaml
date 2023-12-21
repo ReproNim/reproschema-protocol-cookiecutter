@@ -37,10 +37,11 @@ jobs:
     - name: Install system dependencies
       run: sudo apt-get install jq
 
-    - name: Get latest commit hash from reproschema-ui
+    - name: Read Checksum from config.env
       run: |
-        LATEST_HASH=$(curl -s https://api.github.com/repos/ReproNim/reproschema-ui/commits/master | jq -r '.sha')
-        echo "LATEST_COMMIT_HASH=$LATEST_HASH" >> $GITHUB_ENV
+        echo "Reading checksum..."
+        CHECKSUM=$(cat config.env | grep REPROSCHEMA_UI_CHECKSUM | cut -d '=' -f2)
+        echo "LATEST_COMMIT_HASH=${CHECKSUM}" >> $GITHUB_ENV
 
     - name: Install Node dependencies and validate JSON
       run: |
@@ -56,7 +57,7 @@ jobs:
     - name: Test with pyshacl
       run: |
         reproschema -l DEBUG validate activities
-        reproschema -l DEBUG validate ${PROTOCOL_SLUG}/$${PROTOCOL_SLUG}_schema
+        reproschema -l DEBUG validate ${PROTOCOL_SLUG}/${PROTOCOL_SLUG}_schema
 
     - name: Build and prepare UI
       run: |

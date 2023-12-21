@@ -1,6 +1,7 @@
 import json
 import os
 import shutil
+import subprocess
 
 def get_pref_label(activity_path):
     try:
@@ -11,15 +12,13 @@ def get_pref_label(activity_path):
         return "Unknown Activity"
 
 def update_json_schema(activities, base_path):
-    schema_file = os.path.join(base_path, '{{ cookiecutter.__protocol_slug }}/{{ cookiecutter.__protocol_slug }}_schema')  # Update with the correct relative path
+    schema_file = os.path.join(base_path, '{{ cookiecutter.__protocol_slug }}/{{ cookiecutter.__protocol_slug }}_schema')
     with open(schema_file, 'r') as file:
         schema = json.load(file)
 
-    # Clear existing activities in ui and order
     schema['ui']['addProperties'] = []
     schema['ui']['order'] = []
 
-    # Update ui and order based on available activities
     for activity in activities:
         activity_schema_path = os.path.join(base_path, f'activities/{activity}/{activity}_schema')
         pref_label = get_pref_label(activity_schema_path)
@@ -32,12 +31,26 @@ def update_json_schema(activities, base_path):
         })
         schema['ui']['order'].append(activity_path)
 
-    # Save the updated schema
     with open(schema_file, 'w') as file:
         json.dump(schema, file, indent=4)
 
+def fetch_latest_checksum(base_path):
+    try:
+        latest_hash = subprocess.check_output(
+            ["curl", "-s", "https://api.github.com/repos/ReproNim/reproschema-ui/commits/master", "|", "jq", "-r", "'.sha'"],
+            universal_newlines=True
+        ).strip()
+
+        config_path = os.path.join(base_path, 'config.env')
+        with open(config_path, 'w') as file:
+            file.write(f"REPROSCHEMA_UI_CHECKSUM={latest_hash}\n")
+
+        print("Latest checksum fetched and saved in config.env.")
+    except Exception as e:
+        print(f"Error fetching checksum: {e}")
+
 def main():
-    base_path = os.getcwd()  # Base path of the generated project
+    base_path = os.getcwd()
     activities_path = os.path.join(base_path, 'activities')
 
     try:
@@ -47,14 +60,11 @@ def main():
         print("Error reading selected activities.")
         return
 
-    # Create directories for selected activities
     for activity in selected_activities:
         activity_dir = os.path.join(activities_path, activity)
         if not os.path.exists(activity_dir):
             os.makedirs(activity_dir)
-            # Copy template files if necessary
 
-    # Optional: Remove unselected activities
     all_activities = ['Activity1', 'Activity2', 'Activity3', 'selectActivity', 'voiceActivity']
     for activity in all_activities:
         if activity not in selected_activities:
@@ -62,9 +72,11 @@ def main():
             if os.path.exists(activity_dir):
                 shutil.rmtree(activity_dir)
 
-    # Update the JSON schema
     activities = [activity for activity in selected_activities if os.path.exists(os.path.join(activities_path, activity))]
     update_json_schema(activities, base_path)
+
+    # Fetch and save the latest checksum
+    fetch_latest_checksum(base_path)
 
 if __name__ == "__main__":
     main()
