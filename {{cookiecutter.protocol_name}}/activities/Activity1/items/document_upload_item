@@ -2,7 +2,7 @@
     "@context": "https://raw.githubusercontent.com/ReproNim/reproschema/1.0.0-rc4/contexts/generic",
     "@type": "reproschema:Field",
     "@id": "document_upload_item",
-    "prefLabel": "document upload item",
+    "prefLabel": {"en": "Upload Documents"},
     "description": "This is a document upload item.",
     "schemaVersion": "1.0.0-rc4",
     "version": "0.0.1",

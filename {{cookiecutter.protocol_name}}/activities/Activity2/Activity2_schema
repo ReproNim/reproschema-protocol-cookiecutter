@@ -2,7 +2,7 @@
     "@context": "https://raw.githubusercontent.com/ReproNim/reproschema/1.0.0-rc4/contexts/generic",
     "@type": "reproschema:Activity",
     "@id": "Activity2_schema",
-    "prefLabel": "demo of all input types and widgets",
+    "prefLabel": {"en": "Select Dropdown"},
     "description": "dummy activity to show all inputs types and widgets",
     "preamble": "This activity will show you all the different input type and widgets currently available.",
     "schemaVersion": "1.0.0-rc4",
