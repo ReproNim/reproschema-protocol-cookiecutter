@@ -8,4 +8,8 @@
 {%- include 'licenses/Apache-2' %}
 {%- elif cookiecutter.license == "Mozilla Public License 2.0" -%}
 {%- include 'licenses/MPL-2' %}
+{%- elif cookiecutter.license == "Creative Commons License 4.0" -%}
+{%- include 'licenses/CC-4' %}
+{%- elif cookiecutter.license == "Creative Commons NonCommercial License 4.0" -%}
+{%- include 'licenses/CC-NC-4' %}
 {%- endif -%}
