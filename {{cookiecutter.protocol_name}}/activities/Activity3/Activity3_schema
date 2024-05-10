@@ -36,7 +36,7 @@
                     "allow": [
                       "reproschema:Skipped"
                   ]
-                },                
+                },
                 {"isAbout": "items/participant_id_item",
                 "variableName": "participant_id_item",
                 "isVis": true,

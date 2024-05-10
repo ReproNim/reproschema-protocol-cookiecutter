@@ -14,16 +14,16 @@ You can find a demo protocol [here](https://github.com/ReproNim/reproschema-demo
 The following are required and recommended tools for using this cookiecutter and the ReproSchema protocol it generates. This is all a one-time setup, so if you have already done it, skip to the [next section](#creating-a-new-project)!
 
   * **pipx**
-  
+
     pipx is a tool for managing isolated Python-based applications. It is the recommended way to install Poetry and cruft. To install `pipx` follow the instructions here: https://pypa.github.io/pipx/installation/
-  
+
   * **cruft**
 
     cruft is a tool for generating projects based on a cookiecutter (like this one!) and keeping those projects updated if the original cookiecutter changes. Install it with `pipx` by running:
     ```shell
     pipx install cruft
     ```
-    You may also choose to not have a persistent installation of cruft, in which case you would replace any calls to the `cruft` command below with `pipx run cruft`. 
+    You may also choose to not have a persistent installation of cruft, in which case you would replace any calls to the `cruft` command below with `pipx run cruft`.
 
 ## Creating a new protocol
 
@@ -71,21 +71,21 @@ make setup
    git branch -M main
    git push -u origin main
    ```
-3. Create the gh-pages branch 
-    - Fetch the latest changes from your repository (if any): 
-        ```bash 
-        git fetch origin 
-        ``` 
-    - Create and switch to the new gh-pages branch: 
-        ```bash 
-        git checkout -b gh-pages 
-        ``` 
+3. Create the gh-pages branch
+    - Fetch the latest changes from your repository (if any):
+        ```bash
+        git fetch origin
+        ```
+    - Create and switch to the new gh-pages branch:
+        ```bash
+        git checkout -b gh-pages
+        ```
     - Push the gh-pages branch to remote:
         ```bash
         git push --set-upstream origin gh-pages
         ```
-    This branch allows you to deploy your ReproSchema UI publicly. 
-    
+    This branch allows you to deploy your ReproSchema UI publicly.
+
 ## Keeping your project up to date
 
 To be up-to-date with the template, first check if there is a mismatch
