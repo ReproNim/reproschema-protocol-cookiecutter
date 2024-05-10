@@ -3,13 +3,21 @@ import random
 import sys
 import json
 
+
 def select_activities(n):
-    all_activities = ['Activity1', 'Activity2', 'Activity3', 'selectActivity', 'voiceActivity']
+    all_activities = [
+        "Activity1",
+        "Activity2",
+        "Activity3",
+        "selectActivity",
+        "voiceActivity",
+    ]
     return random.sample(all_activities, n)
+
 
 def main():
     # Read the number of activities from the Cookiecutter context
-    num_activities_str = '{{ cookiecutter.number_of_activities }}'
+    num_activities_str = "{{ cookiecutter.number_of_activities }}"
 
     try:
         num_activities = int(num_activities_str)
@@ -23,8 +31,9 @@ def main():
     print(f"Selected activities: {', '.join(selected_activities)}")
 
     # Write the selected activities to a file
-    with open('selected_activities.json', 'w') as f:
+    with open("selected_activities.json", "w") as f:
         json.dump(selected_activities, f)
+
 
 if __name__ == "__main__":
     main()
