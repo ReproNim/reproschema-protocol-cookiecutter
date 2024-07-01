@@ -1,10 +1,10 @@
 {
-    "@context": "https://raw.githubusercontent.com/ReproNim/reproschema/1.0.0-rc4/contexts/generic",
+    "@context": "https://raw.githubusercontent.com/ReproNim/reproschema/1.0.0/contexts/generic",
 	"@type": "reproschema:Protocol",
 	"@id": "{{cookiecutter.__protocol_slug}}_schema",
 	"prefLabel": "{{cookiecutter.__protocol_slug}}",
 	"description": "{{cookiecutter.protocol_description}}",
-	"schemaVersion": "1.0.0-rc4",
+	"schemaVersion": "1.0.0",
 	"version": "0.0.1",
 	"landingPage": [{
             "@id": "README.md",
