@@ -3,6 +3,7 @@ import os
 import shutil
 import requests
 import subprocess
+import sys
 
 
 def get_pref_label(activity_path):
@@ -49,7 +50,7 @@ def fetch_latest_checksum(base_path):
     try:
         # Using Python requests to fetch and parse JSON
         response = requests.get(
-            "https://api.github.com/repos/ReproNim/reproschema-ui/commits/master"
+            "https://api.github.com/repos/ReproNim/reproschema-ui/commits/main"
         )
         response.raise_for_status()  # Raises an HTTPError if the HTTP request returned an unsuccessful status code
         latest_hash = response.json()["sha"]
