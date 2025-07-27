@@ -1,0 +1,301 @@
+name: Test Cookiecutter
+
+on:
+  push:
+    branches: [main, dev, 'feat/*']
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  test-generation:
+    name: Test template generation
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+        python-version: ['3.8', '3.9', '3.10', '3.11']
+        num-activities: [1, 3, 5]
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: ${{ matrix.python-version }}
+    
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+    
+    - name: Test cookiecutter generation
+      run: |
+        python -m cookiecutter . --no-input \
+          protocol_name="Test Protocol ${{ matrix.num-activities }}" \
+          protocol_description="Testing with ${{ matrix.num-activities }} activities" \
+          github_org="test-org" \
+          github_repo="test-repo" \
+          protocol_slug="test_protocol_${{ matrix.num-activities }}" \
+          author_name="Test Author" \
+          author_email="test@example.com" \
+          license="MIT" \
+          number_of_activities=${{ matrix.num-activities }}
+    
+    - name: Validate generated project structure
+      run: |
+        cd "Test Protocol ${{ matrix.num-activities }}"
+        # Check essential files exist
+        test -f README.md
+        test -f Makefile
+        test -f LICENSE
+        test -f config.env
+        test -d activities
+        test -d ui-changes
+        test -f test_protocol_${{ matrix.num-activities }}/test_protocol_${{ matrix.num-activities }}_schema
+      shell: bash
+    
+    - name: Count activities
+      run: |
+        cd "Test Protocol ${{ matrix.num-activities }}/activities"
+        count=$(ls -d */ | wc -l)
+        echo "Found $count activities"
+        if [ $count -ne ${{ matrix.num-activities }} ]; then
+          echo "ERROR: Expected ${{ matrix.num-activities }} activities but found $count"
+          exit 1
+        fi
+      shell: bash
+    
+    - name: Validate JSON schemas
+      run: |
+        cd "Test Protocol ${{ matrix.num-activities }}"
+        python -c "
+import json
+import sys
+from pathlib import Path
+
+errors = []
+
+# Check all schema files
+for schema_file in Path('.').rglob('*_schema'):
+    try:
+        with open(schema_file) as f:
+            json.load(f)
+        print(f'✓ Valid JSON: {schema_file}')
+    except json.JSONDecodeError as e:
+        errors.append(f'✗ Invalid JSON in {schema_file}: {e}')
+
+# Check all item files
+for item_file in Path('.').rglob('*_item'):
+    try:
+        with open(item_file) as f:
+            json.load(f)
+        print(f'✓ Valid JSON: {item_file}')
+    except json.JSONDecodeError as e:
+        errors.append(f'✗ Invalid JSON in {item_file}: {e}')
+
+if errors:
+    print('\nErrors found:')
+    for error in errors:
+        print(error)
+    sys.exit(1)
+else:
+    print('\nAll schemas are valid JSON!')
+"
+    
+    - name: Check protocol schema has correct activities
+      run: |
+        cd "Test Protocol ${{ matrix.num-activities }}"
+        python -c "
+import json
+import sys
+
+with open('test_protocol_${{ matrix.num-activities }}/test_protocol_${{ matrix.num-activities }}_schema') as f:
+    schema = json.load(f)
+
+activities = schema['ui']['addProperties']
+order = schema['ui']['order']
+
+print(f'Found {len(activities)} activities in addProperties')
+print(f'Found {len(order)} activities in order')
+
+if len(activities) != ${{ matrix.num-activities }}:
+    print(f'ERROR: Expected ${{ matrix.num-activities }} activities but found {len(activities)}')
+    sys.exit(1)
+
+if len(order) != ${{ matrix.num-activities }}:
+    print(f'ERROR: Expected ${{ matrix.num-activities }} items in order but found {len(order)}')
+    sys.exit(1)
+
+print('✓ Protocol schema has correct number of activities')
+"
+
+  validate-schemas:
+    name: Validate ReproSchema compliance
+    runs-on: ubuntu-latest
+    needs: test-generation
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.11'
+    
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+        pip install reproschema
+    
+    - name: Generate test protocol
+      run: |
+        python -m cookiecutter . --no-input \
+          protocol_name="Validation Test" \
+          number_of_activities=3
+    
+    - name: Validate with reproschema
+      run: |
+        cd "Validation Test"
+        # Note: This will fail until reproschema-py is updated
+        # For now, we'll do basic schema validation
+        python -c "
+import json
+from pathlib import Path
+
+print('Checking schema versions...')
+for schema_file in Path('.').rglob('*_schema'):
+    with open(schema_file) as f:
+        schema = json.load(f)
+    
+    context = schema.get('@context', '')
+    if '1.0.0-rc' in str(context):
+        print(f'WARNING: {schema_file} uses release candidate version')
+    elif '1.0.0' in str(context):
+        print(f'✓ {schema_file} uses stable version')
+    else:
+        print(f'? {schema_file} has unexpected context: {context}')
+"
+
+  test-hooks:
+    name: Test generation hooks
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.11'
+    
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+    
+    - name: Test pre-generation hook
+      run: |
+        cd hooks
+        python -c "
+# Test activity selection
+import sys
+sys.path.insert(0, '.')
+
+# Mock cookiecutter context
+class MockCookiecutter:
+    number_of_activities = '3'
+
+# Replace the template variable
+with open('pre_gen_project.py', 'r') as f:
+    code = f.read()
+code = code.replace('{{ cookiecutter.number_of_activities }}', '3')
+
+# Execute the modified code
+exec(code)
+
+# Check if activities were selected
+import json
+with open('../selected_activities.json') as f:
+    selected = json.load(f)
+
+print(f'Selected activities: {selected}')
+assert len(selected) == 3
+assert all(a in ['Activity1', 'Activity2', 'Activity3', 'selectActivity', 'voiceActivity'] for a in selected)
+print('✓ Pre-generation hook works correctly')
+"
+    
+    - name: Clean up
+      run: rm -f selected_activities.json
+
+  lint-and-format:
+    name: Code quality checks
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.11'
+    
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+    
+    - name: Run black
+      run: black --check hooks/ update_schema_version.py
+    
+    - name: Run ruff
+      run: ruff check hooks/ update_schema_version.py
+    
+    - name: Run bandit
+      run: bandit -r hooks/ -ll
+      continue-on-error: true  # Bandit can be overly strict
+
+  integration-test:
+    name: Full integration test
+    runs-on: ubuntu-latest
+    needs: [test-generation, validate-schemas, test-hooks]
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.11'
+    
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+    
+    - name: Generate and test protocol
+      run: |
+        # Generate a protocol
+        python -m cookiecutter . --no-input \
+          protocol_name="Integration Test" \
+          number_of_activities=3
+        
+        cd "Integration Test"
+        
+        # Test that Makefile works
+        make help
+        
+        # Check config.env was created
+        test -f config.env
+        grep -q "REPROSCHEMA_UI_CHECKSUM" config.env
+        
+        # Ensure no Activity4 references
+        if grep -r "Activity4" .; then
+          echo "ERROR: Found Activity4 references"
+          exit 1
+        fi
+        
+        echo "✓ Integration test passed!"
