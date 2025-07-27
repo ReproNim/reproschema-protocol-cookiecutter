@@ -13,17 +13,23 @@ def update_file(file_path, version):
         with open(file_path, "r") as file:
             content = file.read()
         
+        # Determine context path based on version
+        if version == "1.0.0":
+            context_path = "reproschema"
+        else:
+            context_path = "generic"
+        
         # Update simple string @context
         content = re.sub(
-            r'"@context": "https://raw\.githubusercontent\.com/ReproNim/reproschema/[^/]+/contexts/generic"',
-            f'"@context": "https://raw.githubusercontent.com/ReproNim/reproschema/{version}/contexts/generic"',
+            r'"@context": "https://raw\.githubusercontent\.com/ReproNim/reproschema/[^/]+/contexts/(generic|reproschema)"',
+            f'"@context": "https://raw.githubusercontent.com/ReproNim/reproschema/{version}/contexts/{context_path}"',
             content,
         )
         
         # Update @context when it's in an array (handles multi-line)
         content = re.sub(
-            r'"https://raw\.githubusercontent\.com/ReproNim/reproschema/[^/]+/contexts/generic"',
-            f'"https://raw.githubusercontent.com/ReproNim/reproschema/{version}/contexts/generic"',
+            r'"https://raw\.githubusercontent\.com/ReproNim/reproschema/[^/]+/contexts/(generic|reproschema)"',
+            f'"https://raw.githubusercontent.com/ReproNim/reproschema/{version}/contexts/{context_path}"',
             content,
         )
         
