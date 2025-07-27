@@ -22,8 +22,19 @@ def get_pref_label(activity_path):
         with open(activity_path, "r") as file:
             activity_schema = json.load(file)
         pref_label = activity_schema.get("prefLabel", "Unknown Activity")
-        logger.debug(f"Got prefLabel '{pref_label}' from {activity_path}")
-        return pref_label
+        
+        # Normalize prefLabel to always return a string
+        if isinstance(pref_label, dict):
+            # Try to get English label first, then any available language
+            normalized = pref_label.get("en", pref_label.get(list(pref_label.keys())[0], "Unknown Activity") if pref_label else "Unknown Activity")
+        elif isinstance(pref_label, str):
+            normalized = pref_label
+        else:
+            logger.warning(f"Unexpected prefLabel type in {activity_path}: {type(pref_label)}")
+            normalized = "Unknown Activity"
+            
+        logger.debug(f"Got prefLabel '{normalized}' from {activity_path}")
+        return normalized
     except FileNotFoundError:
         logger.warning(f"Activity file not found: {activity_path}")
         return "Unknown Activity"
@@ -47,17 +58,19 @@ def update_json_schema(activities, base_path):
     schema["ui"]["order"] = []
 
     for activity in activities:
+        # Use lowercase schema filename consistently
+        activity_schema_filename = f"{activity.lower()}_schema"
         activity_schema_path = os.path.join(
-            base_path, f"activities/{activity}/{activity}_schema"
+            base_path, f"activities/{activity}/{activity_schema_filename}"
         )
         pref_label = get_pref_label(activity_schema_path)
-        activity_path = f"../activities/{activity}/{activity}_schema"
+        activity_path = f"../activities/{activity}/{activity_schema_filename}"
 
         schema["ui"]["addProperties"].append(
             {
                 "isAbout": activity_path,
-                "variableName": f"{activity}_schema",
-                "prefLabel": pref_label,
+                "variableName": activity_schema_filename,
+                "prefLabel": {"en": pref_label},  # Always use object notation
             }
         )
         schema["ui"]["order"].append(activity_path)
