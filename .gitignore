@@ -167,3 +167,6 @@ internal/
 # Temporary files
 .ui_checksum_cache
 selected_activities.json
+
+# Development helper scripts
+run_in_env.sh

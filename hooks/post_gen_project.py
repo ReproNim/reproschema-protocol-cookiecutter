@@ -164,7 +164,8 @@ def setup_pre_commit(optional=True):
 
 
 def main():
-    \"\"\"Main function to handle post-generation setup.\"\"\"\n    base_path = os.getcwd()
+    """Main function to handle post-generation setup."""
+    base_path = os.getcwd()
     init_flag_path = os.path.join(base_path, ".initialized")
 
     # Check if the project has been initialized before
