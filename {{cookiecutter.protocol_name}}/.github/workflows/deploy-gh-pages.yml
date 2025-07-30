@@ -69,8 +69,8 @@ jobs:
           cat > reproschema-ui/dist/config.js << 'EOF'
           module.exports = {
             /* eslint-disable */
-            githubSrc: 'https://raw.githubusercontent.com/{{cookiecutter.github_org}}/{{cookiecutter.protocol_name}}/{% raw %}${{ steps.get-ref.outputs.deploy_ref }}{% endraw %}/{{cookiecutter.__protocol_slug}}/{{cookiecutter.__protocol_slug}}_schema',
-            banner: 'This protocol is deployed from {{cookiecutter.github_org}}/{{cookiecutter.protocol_name}} (ref: {% raw %}${{ steps.get-ref.outputs.deploy_ref }}{% endraw %})',
+            githubSrc: 'https://raw.githubusercontent.com/{{cookiecutter.github_org}}/{{cookiecutter.protocol_name|slugify}}/{% raw %}${{ steps.get-ref.outputs.deploy_ref }}{% endraw %}/{{cookiecutter.__protocol_slug}}/{{cookiecutter.__protocol_slug}}_schema',
+            banner: 'This protocol is deployed from {{cookiecutter.github_org}}/{{cookiecutter.protocol_name|slugify}} (ref: {% raw %}${{ steps.get-ref.outputs.deploy_ref }}{% endraw %})',
             startButton: 'Start',
             assetsPublicPath: '/',
             backendServer: null,
