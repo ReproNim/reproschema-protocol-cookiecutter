@@ -56,7 +56,7 @@ jobs:
       - name: Build reproschema-ui
         run: |
           cd reproschema-ui
-          npm install
+          npm ci
           npm run build
 
       - name: Copy protocol to reproschema-ui
