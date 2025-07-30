@@ -50,7 +50,8 @@ jobs:
         run: |
           git clone https://github.com/ReproNim/reproschema-ui.git
           cd reproschema-ui
-          git checkout master
+          # Pin to specific commit for reproducible builds
+          git checkout 9f7b6b961cdcb516531bbbf1bf1b74648089d04a
 
       - name: Build reproschema-ui
         run: |
