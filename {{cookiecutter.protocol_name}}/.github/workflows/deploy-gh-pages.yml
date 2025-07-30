@@ -1,0 +1,103 @@
+name: Deploy to GitHub Pages
+
+on:
+  push:
+    branches: [ main ]
+    tags: [ 'v*' ]
+  workflow_dispatch:
+    inputs:
+      ref:
+        description: 'Branch, tag, or commit SHA to deploy'
+        required: false
+        default: 'main'
+        type: string
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: "pages"
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: {% raw %}${{ github.event.inputs.ref || github.ref }}{% endraw %}
+
+      - name: Get deployment ref
+        id: get-ref
+        run: |
+          if [ "{% raw %}${{ github.event_name }}{% endraw %}" = "workflow_dispatch" ] && [ -n "{% raw %}${{ github.event.inputs.ref }}{% endraw %}" ]; then
+            echo "deploy_ref={% raw %}${{ github.event.inputs.ref }}{% endraw %}" >> $GITHUB_OUTPUT
+          elif [ -n "{% raw %}${{ github.ref_name }}{% endraw %}" ]; then
+            echo "deploy_ref={% raw %}${{ github.ref_name }}{% endraw %}" >> $GITHUB_OUTPUT
+          else
+            echo "deploy_ref=main" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Clone reproschema-ui
+        run: |
+          git clone https://github.com/ReproNim/reproschema-ui.git
+          cd reproschema-ui
+          git checkout master
+
+      - name: Build reproschema-ui
+        run: |
+          cd reproschema-ui
+          npm install
+          npm run build
+
+      - name: Copy protocol to reproschema-ui
+        run: |
+          # Copy the entire protocol directory to the reproschema-ui public folder
+          cp -r ./{{cookiecutter.__protocol_slug}} reproschema-ui/dist/
+          cp -r ./activities reproschema-ui/dist/
+          
+          # Update the config to point to our protocol
+          cat > reproschema-ui/dist/config.js << 'EOF'
+          module.exports = {
+            /* eslint-disable */
+            githubSrc: 'https://raw.githubusercontent.com/{{cookiecutter.github_org}}/{{cookiecutter.protocol_name}}/{% raw %}${{ steps.get-ref.outputs.deploy_ref }}{% endraw %}/{{cookiecutter.__protocol_slug}}/{{cookiecutter.__protocol_slug}}_schema',
+            banner: 'This protocol is deployed from {{cookiecutter.github_org}}/{{cookiecutter.protocol_name}} (ref: {% raw %}${{ steps.get-ref.outputs.deploy_ref }}{% endraw %})',
+            startButton: 'Start',
+            assetsPublicPath: '/',
+            backendServer: null,
+            showHelp: true,
+            contact: '{{cookiecutter.email}}',
+            emailSubject: 'Help with {{cookiecutter.protocol_name}}',
+            logoSrc: '{{cookiecutter.__protocol_slug}}/about_the_study.svg',
+            auth: {
+              on: false,
+            },
+          };
+          EOF
+
+      - name: Setup Pages
+        uses: actions/configure-pages@v4
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: 'reproschema-ui/dist'
+
+  deploy:
+    environment:
+      name: github-pages
+      url: {% raw %}${{ steps.deployment.outputs.page_url }}{% endraw %}
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
