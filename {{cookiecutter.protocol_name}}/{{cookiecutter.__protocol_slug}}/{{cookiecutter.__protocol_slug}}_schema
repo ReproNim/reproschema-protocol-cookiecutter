@@ -1,5 +1,5 @@
 {
-    "@context": "https://raw.githubusercontent.com/ReproNim/reproschema/1.0.0/contexts/generic",
+    "@context": "https://raw.githubusercontent.com/ReproNim/reproschema/1.0.0/contexts/reproschema",
 	"@type": "reproschema:Protocol",
 	"@id": "{{cookiecutter.__protocol_slug}}_schema",
 	"prefLabel": "{{cookiecutter.__protocol_slug}}",
@@ -11,47 +11,9 @@
             "inLanguage": "en"
         }
     ],
-	"messages": [
-		{
-			"message": "Test message: Triggered when item1 value is greater than 0",
-			"jsExpression": "item1 > 0"
-		}
-	],
 	"ui": {
-        "addProperties": [
-            {"isAbout": "../activities/Activity1/activity1_schema",
-            "variableName": "activity1_schema",
-            "prefLabel": {"en": "Upload Documents"}
-            },
-            {"isAbout": "../activities/Activity2/Activity2_schema",
-            "variableName": "Activity2_schema",
-            "prefLabel": {"en": "Select Dropdown"}
-            },
-            {"isAbout": "../activities/Activity3/Activity3_schema",
-            "variableName": "Activity3_schema",
-            "prefLabel": {"en": "Enter Input"}
-            },
-            {"isAbout": "../activities/Activity4/Activity4_schema",
-            "variableName": "Activity4_schema",
-            "prefLabel": {"en": "Sign Consent"}
-            },
-            {"isAbout": "../activities/selectActivity/selectActivity_schema",
-            "variableName": "selectActivity_schema",
-            "prefLabel": {"en": "Select Response"}
-            },
-            {"isAbout": "../activities/voiceActivity/voiceActivity_schema",
-            "variableName": "voiceActivity_schema",
-            "prefLabel": {"en": "Voice Activity" }
-            }
-        ],
-    "order": [
-        "../activities/Activity1/activity1_schema",
-        "../activities/Activity2/Activity2_schema",
-        "../activities/Activity3/Activity3_schema",
-        "../activities/selectActivity/selectActivity_schema",
-        "../activities/voiceActivity/voiceActivity_schema",
-        "../activities/Activity4/Activity4_schema"
-        ],
+        "addProperties": [],
+        "order": [],
 		"shuffle": false,
 		"allow": [
 			"reproschema:AllowExport"

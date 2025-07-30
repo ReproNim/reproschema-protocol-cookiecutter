@@ -1,20 +1,52 @@
-# See https://pre-commit.com for more information
-# See https://pre-commit.com/hooks.html for more hooks
+# Pre-commit hooks for the cookiecutter project
 repos:
--   repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v4.6.0
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.5.0
     hooks:
-    -   id: trailing-whitespace
-    -   id: end-of-file-fixer
-    -   id: check-yaml
-    -   id: check-json
-    -   id: check-ast
-    -   id: check-added-large-files
--   repo: https://github.com/psf/black
-    rev: 24.4.2
+      - id: trailing-whitespace
+      - id: end-of-file-fixer
+      - id: check-yaml
+      - id: check-json
+        exclude: '{{cookiecutter.protocol_name}}'
+      - id: check-added-large-files
+      - id: check-merge-conflict
+      - id: check-toml
+      - id: debug-statements
+      - id: mixed-line-ending
+
+  - repo: https://github.com/psf/black
+    rev: 23.12.1
     hooks:
-    -   id: black
--   repo: https://github.com/codespell-project/codespell
-    rev: v2.2.6
+      - id: black
+        args: ['--config', 'pyproject.toml']
+        exclude: '{{cookiecutter.protocol_name}}'
+
+  - repo: https://github.com/charliermarsh/ruff-pre-commit
+    rev: v0.1.9
     hooks:
-    -   id: codespell
+      - id: ruff
+        args: ['--fix']
+        exclude: '{{cookiecutter.protocol_name}}'
+
+  - repo: https://github.com/pre-commit/mirrors-mypy
+    rev: v1.8.0
+    hooks:
+      - id: mypy
+        additional_dependencies: [types-requests]
+        exclude: '{{cookiecutter.protocol_name}}'
+
+  - repo: https://github.com/pycqa/bandit
+    rev: 1.7.6
+    hooks:
+      - id: bandit
+        args: ['-c', 'pyproject.toml']
+        exclude: '{{cookiecutter.protocol_name}}'
+
+  - repo: local
+    hooks:
+      - id: update-schema-versions
+        name: Update Schema Versions
+        entry: python update_schema_version.py
+        language: python
+        files: '_schema$|_item$'
+        pass_filenames: false
