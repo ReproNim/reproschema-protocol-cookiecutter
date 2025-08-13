@@ -1,0 +1,185 @@
+name: Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version to release (e.g., 1.0.1)'
+        required: true
+        type: string
+      release_type:
+        description: 'Release type'
+        required: true
+        type: choice
+        options:
+          - patch
+          - minor
+          - major
+
+permissions:
+  contents: write
+  pull-requests: write  # For protected branch compatibility
+  metadata: read
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+        token: ${{ secrets.GITHUB_TOKEN }}
+        
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.11'
+        
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install toml
+        
+    - name: Validate version format
+      run: |
+        if ! echo "${{ inputs.version }}" | grep -E '^[0-9]+\.[0-9]+\.[0-9]+$'; then
+          echo "Error: Version must be in format X.Y.Z"
+          exit 1
+        fi
+        
+    - name: Check if tag already exists
+      run: |
+        if git rev-parse "v${{ inputs.version }}" >/dev/null 2>&1; then
+          echo "Error: Tag v${{ inputs.version }} already exists"
+          exit 1
+        fi
+        
+    - name: Wait for tests to complete
+      uses: lewagon/wait-on-check-action@v1.3.4
+      with:
+        ref: ${{ github.sha }}
+        check-name: 'Test template generation'
+        repo-token: ${{ secrets.GITHUB_TOKEN }}
+        wait-interval: 10
+        
+    - name: Update version in pyproject.toml
+      run: |
+        python -c "
+import toml
+import sys
+
+# Read the current pyproject.toml
+with open('pyproject.toml', 'r') as f:
+    data = toml.load(f)
+
+# Update the version
+data['project']['version'] = '${{ inputs.version }}'
+
+# Write back
+with open('pyproject.toml', 'w') as f:
+    toml.dump(data, f)
+        "
+        
+    - name: Update version in cookiecutter.json  
+      run: |
+        python -c "
+import json
+
+# Read cookiecutter.json
+with open('cookiecutter.json', 'r') as f:
+    data = json.load(f)
+
+# Add version field if it doesn't exist
+data['_template_version'] = '${{ inputs.version }}'
+
+# Write back with proper formatting
+with open('cookiecutter.json', 'w') as f:
+    json.dump(data, f, indent=4)
+    f.write('\n')
+        "
+        
+    - name: Install git-cliff
+      uses: kenji-miyake/setup-git-cliff@v2
+      
+    - name: Generate changelog with git-cliff
+      id: changelog
+      run: |
+        # Get the previous tag
+        PREV_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "")
+        
+        if [ -z "$PREV_TAG" ]; then
+          echo "No previous tag found, this is the first release"
+          # Generate changelog for all commits
+          git cliff --tag v${{ inputs.version }} --output CHANGELOG_NEW.md || { echo "Error: Failed to generate changelog"; exit 1; }
+        else
+          echo "Generating changelog from $PREV_TAG to v${{ inputs.version }}"
+          # Generate changelog for commits since last tag
+          git cliff --tag v${{ inputs.version }} --unreleased --output CHANGELOG_NEW.md || { echo "Error: Failed to generate changelog"; exit 1; }
+        fi
+        
+        # Extract just the content for this release (without header/footer)
+        echo "changelog<<EOF" >> $GITHUB_OUTPUT
+        cat CHANGELOG_NEW.md >> $GITHUB_OUTPUT
+        echo "" >> $GITHUB_OUTPUT
+        echo "EOF" >> $GITHUB_OUTPUT
+        
+        # Generate the complete updated changelog
+        git cliff --tag v${{ inputs.version }} --output CHANGELOG.md || { echo "Error: Failed to update CHANGELOG.md"; exit 1; }
+        
+    - name: Commit version updates and changelog
+      run: |
+        git config user.name "github-actions[bot]"
+        git config user.email "github-actions[bot]@users.noreply.github.com"
+        
+        # Stage version updates
+        git add pyproject.toml cookiecutter.json
+        git commit -m "chore: bump version to ${{ inputs.version }}"
+        
+        # Stage and commit changelog (amend if possible, otherwise separate commit)
+        git add CHANGELOG.md
+        if git diff --cached --quiet; then
+          echo "No changelog changes to commit"
+        else
+          git commit --amend --no-edit || git commit -m "docs: update CHANGELOG.md for v${{ inputs.version }}"
+        fi
+        
+        # Single push to main
+        git push origin main
+        
+    - name: Create and push tag
+      run: |
+        git tag -a "v${{ inputs.version }}" -m "Release v${{ inputs.version }}"
+        git push origin "v${{ inputs.version }}"
+        
+    - name: Create Release
+      uses: softprops/action-gh-release@v2
+      with:
+        tag_name: v${{ inputs.version }}
+        name: Release v${{ inputs.version }}
+        draft: false
+        prerelease: false
+        generate_release_notes: true
+        body: |
+          ## 🎉 Release v${{ inputs.version }}
+          
+          **Release type**: ${{ inputs.release_type }}
+          
+          ### For Users of This Template
+          
+          To update your existing protocol generated from this template:
+          ```bash
+          cruft update
+          ```
+          
+          Or to create a new protocol:
+          ```bash
+          cookiecutter gh:ReproNim/reproschema-protocol-cookiecutter
+          ```
+          
+          ### What's Changed
+          
+          ${{ steps.changelog.outputs.changelog }}
+          
+          ---
+          *Changelog automatically generated from conventional commits using git-cliff*
