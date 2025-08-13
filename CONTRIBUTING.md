@@ -95,7 +95,7 @@ feat: add support for custom activity types
 
 ## Release Process
 
-Releases are managed by maintainers using the GitHub Actions release workflow:
+Releases are managed by maintainers using a hybrid approach: manual release workflow with automated changelog generation.
 
 ### Creating a Release
 
@@ -105,9 +105,19 @@ Releases are managed by maintainers using the GitHub Actions release workflow:
 4. Select release type (patch/minor/major)
 5. The workflow will:
    - Update version in pyproject.toml and cookiecutter.json
+   - **Automatically generate and update CHANGELOG.md using git-cliff**
    - Create a git tag
-   - Generate release notes
+   - Generate comprehensive release notes from conventional commits
    - Create a GitHub release
+
+### Automated Changelog
+
+The project uses [git-cliff](https://git-cliff.org/) to automatically generate changelog entries from conventional commits. This eliminates manual changelog maintenance and ensures consistency.
+
+- Changelog is generated from commit messages following the Conventional Commits specification
+- The `.cliff.toml` configuration file defines how commits are grouped and formatted
+- CHANGELOG.md is automatically updated during the release process
+- No manual post-release changelog updates needed!
 
 ### Version Guidelines
 
@@ -115,11 +125,13 @@ Releases are managed by maintainers using the GitHub Actions release workflow:
 - **Minor** (1.X.0): New features, activities, or capabilities
 - **Patch** (1.0.X): Bug fixes, documentation updates
 
-### Post-Release
+### Why This Approach?
 
-After a release, update CHANGELOG.md:
-1. Move items from "Unreleased" to the new version section
-2. Add comparison link at the bottom
+We use a hybrid approach (manual release + automated changelog) because:
+- Cookiecutter templates have different release needs than packages
+- Manual releases provide intentional version control
+- Automated changelog prevents human error and ensures consistency
+- Simpler than full release automation tools while addressing key pain points
 
 ## Schema Updates
 

@@ -18,6 +18,8 @@ on:
 
 permissions:
   contents: write
+  pull-requests: write  # For protected branch compatibility
+  metadata: read
 
 jobs:
   release:
@@ -97,37 +99,58 @@ with open('cookiecutter.json', 'w') as f:
     f.write('\n')
         "
         
-    - name: Commit version updates
+    - name: Install git-cliff
+      uses: kenji-miyake/setup-git-cliff@v2
+      
+    - name: Generate changelog with git-cliff
+      id: changelog
+      run: |
+        # Get the previous tag
+        PREV_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "")
+        
+        if [ -z "$PREV_TAG" ]; then
+          echo "No previous tag found, this is the first release"
+          # Generate changelog for all commits
+          git cliff --tag v${{ inputs.version }} --output CHANGELOG_NEW.md || { echo "Error: Failed to generate changelog"; exit 1; }
+        else
+          echo "Generating changelog from $PREV_TAG to v${{ inputs.version }}"
+          # Generate changelog for commits since last tag
+          git cliff --tag v${{ inputs.version }} --unreleased --output CHANGELOG_NEW.md || { echo "Error: Failed to generate changelog"; exit 1; }
+        fi
+        
+        # Extract just the content for this release (without header/footer)
+        echo "changelog<<EOF" >> $GITHUB_OUTPUT
+        cat CHANGELOG_NEW.md >> $GITHUB_OUTPUT
+        echo "" >> $GITHUB_OUTPUT
+        echo "EOF" >> $GITHUB_OUTPUT
+        
+        # Generate the complete updated changelog
+        git cliff --tag v${{ inputs.version }} --output CHANGELOG.md || { echo "Error: Failed to update CHANGELOG.md"; exit 1; }
+        
+    - name: Commit version updates and changelog
       run: |
         git config user.name "github-actions[bot]"
         git config user.email "github-actions[bot]@users.noreply.github.com"
+        
+        # Stage version updates
         git add pyproject.toml cookiecutter.json
         git commit -m "chore: bump version to ${{ inputs.version }}"
+        
+        # Stage and commit changelog (amend if possible, otherwise separate commit)
+        git add CHANGELOG.md
+        if git diff --cached --quiet; then
+          echo "No changelog changes to commit"
+        else
+          git commit --amend --no-edit || git commit -m "docs: update CHANGELOG.md for v${{ inputs.version }}"
+        fi
+        
+        # Single push to main
         git push origin main
         
     - name: Create and push tag
       run: |
         git tag -a "v${{ inputs.version }}" -m "Release v${{ inputs.version }}"
         git push origin "v${{ inputs.version }}"
-        
-    - name: Generate release notes
-      id: release_notes
-      run: |
-        # Get the previous tag
-        PREV_TAG=$(git describe --tags --abbrev=0 HEAD^ 2>/dev/null || echo "")
-        
-        if [ -z "$PREV_TAG" ]; then
-          echo "No previous tag found, this is the first release"
-          COMPARE_FROM=$(git rev-list --max-parents=0 HEAD)
-        else
-          COMPARE_FROM=$PREV_TAG
-        fi
-        
-        # Generate commit list
-        echo "commits<<EOF" >> $GITHUB_OUTPUT
-        git log --pretty=format:"- %s (%h)" $COMPARE_FROM..HEAD >> $GITHUB_OUTPUT
-        echo "" >> $GITHUB_OUTPUT
-        echo "EOF" >> $GITHUB_OUTPUT
         
     - name: Create Release
       uses: softprops/action-gh-release@v2
@@ -156,4 +179,7 @@ with open('cookiecutter.json', 'w') as f:
           
           ### What's Changed
           
-          Auto-generated release notes are below.
+          ${{ steps.changelog.outputs.changelog }}
+          
+          ---
+          *Changelog automatically generated from conventional commits using git-cliff*
