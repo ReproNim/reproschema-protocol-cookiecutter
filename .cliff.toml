@@ -1,0 +1,90 @@
+# git-cliff configuration for reproschema-protocol-cookiecutter
+# https://git-cliff.org/docs/configuration
+
+[changelog]
+# Changelog header
+header = """
+# Changelog
+
+All notable changes to this project will be documented in this file.
+
+The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
+and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+
+"""
+# Template for the changelog body
+body = """
+{% if version %}\
+    ## [{{ version | trim_start_matches(pat="v") }}] - {{ timestamp | date(format="%Y-%m-%d") }}
+{% else %}\
+    ## [Unreleased]
+{% endif %}\
+
+{% for group, commits in commits | group_by(attribute="group") %}
+    ### {{ group | upper_first }}
+    {% for commit in commits %}
+        - {{ commit.message | upper_first | trim }}{% if commit.breaking %} (**BREAKING**){% endif %}\
+    {% endfor %}
+{% endfor %}\n
+"""
+# Remove the leading and trailing whitespace from the template
+trim = true
+# Changelog footer
+footer = """
+<!-- Links -->
+{% for release in releases -%}
+    {% if release.version -%}
+        {% if release.previous and release.previous.version -%}
+            [{{ release.version | trim_start_matches(pat="v") }}]: https://github.com/ReproNim/reproschema-protocol-cookiecutter/compare/{{ release.previous.version }}...{{ release.version }}
+        {% else -%}
+            [{{ release.version | trim_start_matches(pat="v") }}]: https://github.com/ReproNim/reproschema-protocol-cookiecutter/releases/tag/{{ release.version }}
+        {% endif -%}
+    {% else -%}
+        {% if releases | length > 1 -%}
+            [Unreleased]: https://github.com/ReproNim/reproschema-protocol-cookiecutter/compare/{{ releases | nth(n=1) | get(key="version") }}...HEAD
+        {% else -%}
+            [Unreleased]: https://github.com/ReproNim/reproschema-protocol-cookiecutter/compare/HEAD
+        {% endif -%}
+    {% endif -%}
+{% endfor %}
+"""
+
+[git]
+# Parse the commits based on conventional commits
+conventional_commits = true
+# Filter out the commits that are not conventional
+filter_unconventional = false
+# Process each line of a commit as an individual commit
+split_commits = false
+# Regex for preprocessing the commit messages
+commit_preprocessors = [
+    { pattern = '\((\w+\s)?#([0-9]+)\)', replace = "([#${2}](https://github.com/ReproNim/reproschema-protocol-cookiecutter/pull/${2}))" },
+]
+# Regex for parsing and grouping commits
+commit_parsers = [
+    { message = "^feat", group = "Added" },
+    { message = "^fix", group = "Fixed" },
+    { message = "^doc", group = "Documentation" },
+    { message = "^docs", group = "Documentation" },
+    { message = "^perf", group = "Performance" },
+    { message = "^refactor", group = "Refactored" },
+    { message = "^style", group = "Styling" },
+    { message = "^test", group = "Testing" },
+    { message = "^chore\\(release\\):", skip = true },
+    { message = "^chore", group = "Miscellaneous" },
+    { message = "^build", group = "Build" },
+    { message = "^ci", group = "CI" },
+    { body = ".*security", group = "Security" },
+]
+# Filter commits by regex
+protect_breaking_commits = false
+# Glob pattern for matching git tags
+tag_pattern = "v[0-9]*"
+# Regex for skipping tags
+skip_tags = "v0.1.0-beta.1"
+# Regex for ignoring tags
+ignore_tags = ""
+# Sort the tags chronologically
+date_order = false
+# Sort the commits inside sections by oldest/newest order
+sort_commits = "oldest"
