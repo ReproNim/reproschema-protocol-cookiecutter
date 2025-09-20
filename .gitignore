@@ -170,3 +170,18 @@ selected_activities.json
 
 # Development helper scripts
 run_in_env.sh
+
+# Local MCP and tool configurations
+.mcp.json
+.autorc
+.serena/
+.claude/
+
+# Test outputs and temporary files
+test-qa-output/
+test-workflow.yml
+validate_yaml.py
+**/Final*Validation*Test*/
+
+# Additional cache patterns
+.ui_checksum_cache
